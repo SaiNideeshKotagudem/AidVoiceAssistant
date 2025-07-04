@@ -1,0 +1,120 @@
+{
+  "name": "AidVoice - Crisis Response Assistant",
+  "short_name": "AidVoice",
+  "description": "Offline crisis response assistant with multimodal interaction, real-time translation, and emergency guidance",
+  "version": "1.0.0",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#1976D2",
+  "background_color": "#FAFAFA",
+  "scope": "/",
+  "lang": "en-US",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "categories": ["health", "utilities", "safety"],
+  "screenshots": [
+    {
+      "src": "/screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "AidVoice main interface on desktop"
+    },
+    {
+      "src": "/screenshot-narrow.png", 
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "AidVoice emergency interface on mobile"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512", 
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Emergency Call",
+      "short_name": "Call 911",
+      "description": "Quick access to emergency services",
+      "url": "/?action=call",
+      "icons": [
+        {
+          "src": "/shortcut-call.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Voice Assistant",
+      "short_name": "Voice Help",
+      "description": "Activate voice emergency assistant", 
+      "url": "/?action=voice",
+      "icons": [
+        {
+          "src": "/shortcut-voice.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Emergency Guide",
+      "short_name": "Protocols",
+      "description": "Access emergency protocols",
+      "url": "/guide",
+      "icons": [
+        {
+          "src": "/shortcut-guide.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Translate",
+      "short_name": "Translate",
+      "description": "Emergency translation",
+      "url": "/translate",
+      "icons": [
+        {
+          "src": "/shortcut-translate.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "capture_links": "new-client",
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "tel",
+      "url": "/?call=%s"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/?handler=image",
+      "accept": {
+        "image/*": [".png", ".jpg", ".jpeg", ".gif", ".webp"]
+      }
+    }
+  ]
+}
