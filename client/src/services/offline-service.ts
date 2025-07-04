@@ -3,6 +3,8 @@ export class OfflineService {
   private isInitialized = false;
   private isOnline = navigator.onLine;
   private serviceWorkerSupported = false;
+  private dbName = 'EmergencyAppDB';
+  private dbVersion = 1;
 
   private constructor() {
     this.setupOnlineStatusListeners();
@@ -28,12 +30,166 @@ export class OfflineService {
         console.warn('Service Workers not supported in this environment. Offline functionality will be limited.');
       }
       
+      // Initialize IndexedDB
+      await this.initializeIndexedDB();
+      
       this.isInitialized = true;
       console.log('Offline service initialized successfully');
     } catch (error) {
       console.warn('Offline service initialization failed:', error);
       // Don't throw error - allow app to continue without offline features
       this.isInitialized = true;
+    }
+  }
+
+  private async initializeIndexedDB(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!('indexedDB' in window)) {
+        console.warn('IndexedDB not supported');
+        resolve();
+        return;
+      }
+
+      const request = indexedDB.open(this.dbName, this.dbVersion);
+
+      request.onerror = () => {
+        console.warn('IndexedDB initialization failed:', request.error);
+        resolve(); // Don't reject, allow app to continue
+      };
+
+      request.onsuccess = () => {
+        request.result.close();
+        resolve();
+      };
+
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+
+        // Create emergency_actions store
+        if (!db.objectStoreNames.contains('emergency_actions')) {
+          const actionsStore = db.createObjectStore('emergency_actions', { keyPath: 'id' });
+          actionsStore.createIndex('timestamp', 'timestamp', { unique: false });
+          actionsStore.createIndex('type', 'type', { unique: false });
+        }
+
+        // Create emergency_sessions store
+        if (!db.objectStoreNames.contains('emergency_sessions')) {
+          const sessionsStore = db.createObjectStore('emergency_sessions', { keyPath: 'id' });
+          sessionsStore.createIndex('startTime', 'startTime', { unique: false });
+        }
+      };
+    });
+  }
+
+  private async getDB(): Promise<IDBDatabase> {
+    return new Promise((resolve, reject) => {
+      if (!('indexedDB' in window)) {
+        reject(new Error('IndexedDB not supported'));
+        return;
+      }
+
+      const request = indexedDB.open(this.dbName, this.dbVersion);
+
+      request.onerror = () => {
+        reject(new Error('Failed to open IndexedDB'));
+      };
+
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+    });
+  }
+
+  async storeAction(action: any): Promise<void> {
+    try {
+      if (!('indexedDB' in window)) {
+        // Fallback to localStorage
+        const actions = this.getActionsFromLocalStorage();
+        actions.push(action);
+        localStorage.setItem('emergency_actions', JSON.stringify(actions));
+        return;
+      }
+
+      const db = await this.getDB();
+      const transaction = db.transaction(['emergency_actions'], 'readwrite');
+      const store = transaction.objectStore('emergency_actions');
+      
+      await new Promise<void>((resolve, reject) => {
+        const request = store.add(action);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+
+      db.close();
+    } catch (error) {
+      console.warn('Failed to store action in IndexedDB, using localStorage fallback:', error);
+      // Fallback to localStorage
+      try {
+        const actions = this.getActionsFromLocalStorage();
+        actions.push(action);
+        localStorage.setItem('emergency_actions', JSON.stringify(actions));
+      } catch (localStorageError) {
+        console.error('Failed to store action in localStorage:', localStorageError);
+      }
+    }
+  }
+
+  async storeSession(session: any): Promise<void> {
+    try {
+      if (!('indexedDB' in window)) {
+        // Fallback to localStorage
+        const sessions = this.getSessionsFromLocalStorage();
+        sessions.push(session);
+        localStorage.setItem('emergency_sessions', JSON.stringify(sessions));
+        return;
+      }
+
+      const db = await this.getDB();
+      const transaction = db.transaction(['emergency_sessions'], 'readwrite');
+      const store = transaction.objectStore('emergency_sessions');
+      
+      await new Promise<void>((resolve, reject) => {
+        const request = store.put(session); // Use put instead of add to allow updates
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+
+      db.close();
+    } catch (error) {
+      console.warn('Failed to store session in IndexedDB, using localStorage fallback:', error);
+      // Fallback to localStorage
+      try {
+        const sessions = this.getSessionsFromLocalStorage();
+        const existingIndex = sessions.findIndex(s => s.id === session.id);
+        if (existingIndex >= 0) {
+          sessions[existingIndex] = session;
+        } else {
+          sessions.push(session);
+        }
+        localStorage.setItem('emergency_sessions', JSON.stringify(sessions));
+      } catch (localStorageError) {
+        console.error('Failed to store session in localStorage:', localStorageError);
+      }
+    }
+  }
+
+  private getActionsFromLocalStorage(): any[] {
+    try {
+      const stored = localStorage.getItem('emergency_actions');
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.warn('Failed to parse actions from localStorage:', error);
+      return [];
+    }
+  }
+
+  private getSessionsFromLocalStorage(): any[] {
+    try {
+      const stored = localStorage.getItem('emergency_sessions');
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.warn('Failed to parse sessions from localStorage:', error);
+      return [];
     }
   }
 
