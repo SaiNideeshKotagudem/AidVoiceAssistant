@@ -34,7 +34,9 @@ export class GeminiService {
     try {
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
-        throw new Error('GEMINI_API_KEY not found in environment variables');
+        console.error('GEMINI_API_KEY not found in environment variables');
+        console.log('Available environment variables:', Object.keys(process.env).filter(key => key.includes('GEMINI')));
+        throw new Error('GEMINI_API_KEY not found in environment variables. Please set the GEMINI_API_KEY environment variable.');
       }
 
       this.ai = new GoogleGenAI({ apiKey });
@@ -51,6 +53,10 @@ export class GeminiService {
       await this.initialize();
     }
 
+    if (!this.ai) {
+      throw new Error('Gemini service not properly initialized');
+    }
+
     try {
       // Build system prompt based on context
       const systemPrompt = this.buildSystemPrompt(context);
@@ -63,7 +69,7 @@ export class GeminiService {
         }
       ];
 
-      const response = await this.ai!.models.generateContent({
+      const response = await this.ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: message,
         config: {
@@ -78,6 +84,16 @@ export class GeminiService {
       return response.text || "I apologize, but I couldn't process your request right now.";
     } catch (error) {
       console.error('Chat error:', error);
+      
+      // Provide more specific error messages
+      if (error.message?.includes('API key')) {
+        throw new Error('Invalid or missing API key. Please check your GEMINI_API_KEY environment variable.');
+      } else if (error.message?.includes('quota')) {
+        throw new Error('API quota exceeded. Please try again later.');
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        throw new Error('Network error. Please check your internet connection and try again.');
+      }
+      
       throw new Error('Failed to generate response');
     }
   }
@@ -91,6 +107,10 @@ export class GeminiService {
   }> {
     if (!this.isInitialized || !this.ai) {
       await this.initialize();
+    }
+
+    if (!this.ai) {
+      throw new Error('Gemini service not properly initialized');
     }
 
     try {
@@ -107,7 +127,7 @@ export class GeminiService {
         "recommendations": ["recommendation1", "recommendation2", "recommendation3"]
       }`;
 
-      const response = await this.ai!.models.generateContent({
+      const response = await this.ai.models.generateContent({
         model: "gemini-2.5-pro",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         config: {
@@ -149,6 +169,10 @@ export class GeminiService {
       await this.initialize();
     }
 
+    if (!this.ai) {
+      throw new Error('Gemini service not properly initialized');
+    }
+
     try {
       const prompt = `Translate this text to ${targetLanguage}:
       
@@ -161,7 +185,7 @@ export class GeminiService {
         "confidence": number between 0 and 1
       }`;
 
-      const response = await this.ai!.models.generateContent({
+      const response = await this.ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         config: {
@@ -200,6 +224,10 @@ export class GeminiService {
       await this.initialize();
     }
 
+    if (!this.ai) {
+      throw new Error('Gemini service not properly initialized');
+    }
+
     try {
       const prompt = `Analyze this image for emergency situations and safety concerns:
       
@@ -217,7 +245,7 @@ export class GeminiService {
         "severity": "low|medium|high|critical"
       }`;
 
-      const response = await this.ai!.models.generateContent({
+      const response = await this.ai.models.generateContent({
         model: "gemini-2.5-pro",
         contents: [
           {

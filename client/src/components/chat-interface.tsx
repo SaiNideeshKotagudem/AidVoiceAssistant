@@ -79,12 +79,15 @@ export default function ChatInterface({
   }, [emergencyType, speak, messages.length]);
 
   const handleSendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    // Ensure input is always treated as a string and safely trim it
+    const messageText = String(input || '').trim();
+    
+    if (!messageText || isLoading) return;
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       role: 'user',
-      content: input.trim(),
+      content: messageText,
       timestamp: Date.now()
     };
 
@@ -96,9 +99,14 @@ export default function ChatInterface({
       // First, analyze the message for emergency content
       const emergencyAnalysisResponse = await fetch('/api/gemini/analyze-emergency', {
         method: 'POST',
-        body: JSON.stringify({ text: input.trim() }),
+        body: JSON.stringify({ text: messageText }),
         headers: { 'Content-Type': 'application/json' }
       });
+      
+      if (!emergencyAnalysisResponse.ok) {
+        throw new Error(`Emergency analysis failed: ${emergencyAnalysisResponse.status}`);
+      }
+      
       const emergencyAnalysis = await emergencyAnalysisResponse.json();
 
       // If emergency detected, notify parent component
@@ -110,7 +118,7 @@ export default function ChatInterface({
       const chatResponse = await fetch('/api/gemini/chat', {
         method: 'POST',
         body: JSON.stringify({
-          message: input.trim(),
+          message: messageText,
           conversationHistory: messages.slice(-10).map(msg => ({
             role: msg.role,
             content: msg.content,
@@ -124,12 +132,17 @@ export default function ChatInterface({
         }),
         headers: { 'Content-Type': 'application/json' }
       });
+      
+      if (!chatResponse.ok) {
+        throw new Error(`Chat request failed: ${chatResponse.status}`);
+      }
+      
       const chatData = await chatResponse.json();
 
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
-        content: chatData.response,
+        content: chatData.response || 'I apologize, but I encountered an issue processing your request.',
         timestamp: Date.now(),
         isEmergency: emergencyAnalysis.isEmergency
       };
@@ -137,7 +150,7 @@ export default function ChatInterface({
       setMessages(prev => [...prev, assistantMessage]);
       
       // Speak the response
-      speak(chatData.response);
+      speak(assistantMessage.content);
       
       // Focus back on input
       inputRef.current?.focus();
@@ -289,7 +302,7 @@ export default function ChatInterface({
             </div>
             <Button
               onClick={handleSendMessage}
-              disabled={!input.trim() || isLoading}
+              disabled={!String(input || '').trim() || isLoading}
               aria-label="Send message"
             >
               <Send className="h-4 w-4" />
