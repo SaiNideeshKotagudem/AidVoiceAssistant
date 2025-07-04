@@ -12,7 +12,6 @@ import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
 import { useAccessibility } from "@/hooks/use-accessibility";
-import { useDeviceStatus } from "@/hooks/use-device-status";
 
 function Router() {
   return (
@@ -28,12 +27,8 @@ function Router() {
 
 function App() {
   const { accessibilitySettings } = useAccessibility();
-  const { registerServiceWorker } = useDeviceStatus();
 
   useEffect(() => {
-    // Register service worker for offline functionality
-    registerServiceWorker();
-
     // Apply accessibility settings to document
     if (accessibilitySettings.highContrast) {
       document.documentElement.classList.add('high-contrast');
@@ -46,7 +41,7 @@ function App() {
     } else {
       document.documentElement.classList.remove('large-text');
     }
-  }, [accessibilitySettings, registerServiceWorker]);
+  }, [accessibilitySettings]);
 
   return (
     <QueryClientProvider client={queryClient}>

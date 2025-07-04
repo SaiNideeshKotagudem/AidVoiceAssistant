@@ -240,28 +240,6 @@ export const useDeviceStatus = () => {
     };
   }, []);
 
-  const registerServiceWorker = useCallback(async () => {
-    if ('serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.register('/sw.js');
-        console.log('Service Worker registered:', registration);
-        
-        toast({
-          title: "Offline Mode Ready",
-          description: "App is now available offline",
-        });
-      } catch (error) {
-        console.error('Service Worker registration failed:', error);
-        
-        toast({
-          title: "Offline Mode Failed",
-          description: "Could not enable offline functionality",
-          variant: "destructive",
-        });
-      }
-    }
-  }, [toast]);
-
   const updatePerformanceMetrics = useCallback((metrics: Partial<PerformanceMetrics>) => {
     setPerformanceMetrics(prev => ({ ...prev, ...metrics }));
   }, []);
@@ -277,7 +255,6 @@ export const useDeviceStatus = () => {
     checkBatteryLevel,
     checkMemoryUsage,
     getDeviceInfo,
-    registerServiceWorker,
     updatePerformanceMetrics,
   };
 };
