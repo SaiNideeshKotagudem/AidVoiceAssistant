@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Mic, MicOff, Bot, User, AlertCircle, Loader2 } from 'lucide-react';
+import { Send, Mic, MicOff, Bot, User, AlertCircle, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -199,13 +199,17 @@ export default function ChatInterface({
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto h-[600px] flex flex-col">
-      <CardHeader className="flex-shrink-0 border-b">
-        <CardTitle className="flex items-center gap-2">
-          <Bot className="h-5 w-5 text-blue-600" />
-          AidVoice Chat Assistant
+    <Card className="w-full max-w-4xl mx-auto h-[600px] flex flex-col card-modern overflow-hidden">
+      <CardHeader className="flex-shrink-0 border-b border-border/50 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30">
+        <CardTitle className="flex items-center gap-3">
+          <div className="relative">
+            <Bot className="h-6 w-6 text-blue-600" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+          </div>
+          <span className="text-gradient">AidVoice Chat Assistant</span>
           {emergencyType && (
-            <Badge variant="destructive" className="ml-2">
+            <Badge variant="destructive" className="ml-2 animate-pulse">
+              <AlertCircle className="h-3 w-3 mr-1" />
               {emergencyType.charAt(0).toUpperCase() + emergencyType.slice(1)} Mode
             </Badge>
           )}
@@ -213,42 +217,49 @@ export default function ChatInterface({
       </CardHeader>
       
       <CardContent className="flex-1 flex flex-col p-0">
-        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-          <div className="space-y-4">
+        <ScrollArea className="flex-1 p-6" ref={scrollRef}>
+          <div className="space-y-6">
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} slide-up`}
               >
                 <div
-                  className={`max-w-[70%] rounded-lg p-3 ${
+                  className={`max-w-[80%] rounded-2xl p-4 shadow-lg ${
                     message.role === 'user'
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white'
                       : message.isEmergency
-                      ? 'bg-red-50 text-red-900 border border-red-200'
-                      : 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100'
+                      ? 'bg-gradient-to-br from-red-50 to-pink-50 text-red-900 border border-red-200 dark:from-red-950/30 dark:to-pink-950/30 dark:text-red-100 dark:border-red-800'
+                      : 'bg-white/80 backdrop-blur-sm text-gray-900 border border-gray-200/50 dark:bg-gray-800/80 dark:text-gray-100 dark:border-gray-700/50'
                   }`}
                 >
-                  <div className="flex items-start gap-2">
+                  <div className="flex items-start gap-3">
                     {message.role === 'assistant' && (
-                      <Bot className={`h-4 w-4 mt-1 flex-shrink-0 ${
-                        message.isEmergency ? 'text-red-600' : 'text-blue-600'
-                      }`} />
+                      <div className="relative">
+                        <Bot className={`h-5 w-5 mt-1 flex-shrink-0 ${
+                          message.isEmergency ? 'text-red-600 dark:text-red-400' : 'text-blue-600'
+                        }`} />
+                        {message.isEmergency && (
+                          <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                        )}
+                      </div>
                     )}
                     {message.role === 'user' && (
-                      <User className="h-4 w-4 mt-1 flex-shrink-0" />
+                      <User className="h-5 w-5 mt-1 flex-shrink-0 text-white/90" />
                     )}
-                    <div className="flex-1">
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                      <p className={`text-xs mt-1 opacity-70`}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{message.content}</p>
+                      <p className={`text-xs mt-2 opacity-70 ${
+                        message.role === 'user' ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'
+                      }`}>
                         {formatTime(message.timestamp)}
                       </p>
                     </div>
                   </div>
                   {message.isEmergency && (
-                    <div className="flex items-center gap-1 mt-2 text-xs text-red-700">
-                      <AlertCircle className="h-3 w-3" />
-                      Emergency detected
+                    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-red-200 dark:border-red-800">
+                      <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                      <span className="text-xs font-medium text-red-700 dark:text-red-300">Emergency detected</span>
                     </div>
                   )}
                 </div>
@@ -256,14 +267,19 @@ export default function ChatInterface({
             ))}
             
             {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 max-w-[70%]">
-                  <div className="flex items-center gap-2">
-                    <Bot className="h-4 w-4 text-blue-600" />
-                    <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      AidVoice is thinking...
-                    </span>
+              <div className="flex justify-start slide-up">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 max-w-[80%] border border-gray-200/50 dark:bg-gray-800/80 dark:border-gray-700/50">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <Bot className="h-5 w-5 text-blue-600" />
+                      <Sparkles className="absolute -top-1 -right-1 h-3 w-3 text-blue-400 animate-pulse" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        AidVoice is thinking...
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -271,8 +287,8 @@ export default function ChatInterface({
           </div>
         </ScrollArea>
         
-        <div className="border-t p-4 flex-shrink-0">
-          <div className="flex gap-2">
+        <div className="border-t border-border/50 p-6 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-950/30 flex-shrink-0">
+          <div className="flex gap-3">
             <div className="flex-1 relative">
               <Input
                 ref={inputRef}
@@ -281,7 +297,7 @@ export default function ChatInterface({
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message or ask for help..."
                 disabled={isLoading}
-                className="pr-12"
+                className="pr-14 h-12 rounded-xl border-2 border-gray-200/50 focus:border-blue-500/50 bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 dark:border-gray-700/50 dark:focus:border-blue-400/50 transition-all duration-300"
                 aria-label="Chat message input"
               />
               <Button
@@ -290,7 +306,7 @@ export default function ChatInterface({
                 variant={isListening ? "destructive" : "secondary"}
                 onClick={toggleListening}
                 disabled={isLoading}
-                className="absolute right-1 top-1 h-8 w-8 p-0"
+                className="absolute right-2 top-2 h-8 w-8 p-0 rounded-lg transition-all duration-300 hover:scale-105"
                 aria-label={isListening ? "Stop listening" : "Start voice input"}
               >
                 {isListening ? (
@@ -303,6 +319,7 @@ export default function ChatInterface({
             <Button
               onClick={handleSendMessage}
               disabled={!String(input || '').trim() || isLoading}
+              className="h-12 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
               aria-label="Send message"
             >
               <Send className="h-4 w-4" />
@@ -310,13 +327,13 @@ export default function ChatInterface({
           </div>
           
           {isListening && (
-            <div className="mt-2 text-sm text-blue-600 flex items-center gap-1">
+            <div className="mt-3 text-sm text-blue-600 dark:text-blue-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
               Listening... Speak now
             </div>
           )}
           
-          <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+          <div className="mt-3 text-xs text-gray-500 dark:text-gray-400 text-center">
             Press Enter to send • Click mic for voice input • Emergency help available 24/7
           </div>
         </div>

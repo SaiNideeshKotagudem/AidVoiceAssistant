@@ -7,16 +7,149 @@
     <meta name="description" content="Offline crisis response assistant with multimodal interaction, real-time translation, and emergency guidance" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <meta name="theme-color" content="#1976D2" />
+    
+    <!-- Enhanced Font Loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Theme and PWA Meta Tags -->
+    <meta name="theme-color" content="#3B82F6" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="AidVoice" />
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="/src/main.tsx" as="script" />
+    
+    <!-- Performance and Security -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    
+    <!-- Enhanced Viewport for Better Mobile Experience -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0, user-scalable=yes, viewport-fit=cover" />
+    
+    <!-- Loading Styles -->
+    <style>
+      /* Critical loading styles */
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        color: white;
+        font-family: 'Inter', system-ui, sans-serif;
+      }
+      
+      .loading-logo {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        animation: pulse 2s infinite;
+      }
+      
+      .loading-text {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        text-align: center;
+      }
+      
+      .loading-subtitle {
+        font-size: 16px;
+        opacity: 0.8;
+        text-align: center;
+        margin-bottom: 32px;
+      }
+      
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top: 3px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.05); opacity: 0.8; }
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* Hide loading screen when app loads */
+      .app-loaded #loading-screen {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s ease-out;
+      }
+    </style>
   </head>
   <body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+      <div class="loading-logo">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <div class="loading-text">AidVoice</div>
+      <div class="loading-subtitle">Emergency Assistant Loading...</div>
+      <div class="loading-spinner"></div>
+    </div>
+    
+    <!-- Main App Container -->
     <div id="root"></div>
+    
+    <!-- App Initialization Script -->
+    <script>
+      // Hide loading screen when app is ready
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          document.body.classList.add('app-loaded');
+          setTimeout(() => {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+              loadingScreen.remove();
+            }
+          }, 500);
+        }, 1000);
+      });
+      
+      // Service Worker Registration (with error handling)
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('SW registered: ', registration);
+            })
+            .catch(registrationError => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+    
+    <!-- Main App Module -->
     <script type="module" src="/src/main.tsx"></script>
-    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
+    
+    <!-- Replit Development Banner -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
   </body>
 </html>
